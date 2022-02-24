@@ -65,24 +65,19 @@ namespace LightInject.SolrNet.Tests
         }
 
         [Fact]
-        public void CannotResolveSolrAbstractResponseParsersViaArray()
+        public void ResolveSolrAbstractResponseParsersViaArray()
         {
-            //MS Dependency injection doesn't support 
-            Assert.Throws<InvalidOperationException>(() =>
-                defaultServiceProvider.GetInstance<ISolrAbstractResponseParser<Entity>[]>()
-            );
-
+            var result = defaultServiceProvider.GetInstance<ISolrAbstractResponseParser<Entity>[]>();
+            Assert.NotNull(result);
+            Assert.Single(result);
         }
-
 
         [Fact]
         public void ResolveSolrAbstractResponseParsersViaEnumerable()
         {
-            //MS Dependency injection doesn't support 
             var result = defaultServiceProvider.GetInstance<IEnumerable<ISolrAbstractResponseParser<Entity>>>();
             Assert.NotNull(result);
             Assert.Single(result);
-
         }
 
         [Fact]
