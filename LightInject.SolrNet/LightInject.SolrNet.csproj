@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>LightInject.SolrNet</AssemblyName>
+    <RootNamespace>SolrNet</RootNamespace>
+    <PackageIconUrl>https://github.com/solrnet/solrnet/raw/master/Documentation/solr.png</PackageIconUrl>
+    <Authors>Gidon Junge and contributors</Authors>
+    <Company />
+    <PackageId>SolrNet.LightInject</PackageId>
+    <IsPackable>true</IsPackable>
+    <Product>SolrNet.LightInject</Product>
+    <Description>SolrNet extensions for LightInject. SolrNet is a .NET Open Source client for Apache Solr. This version of SolrNet is compatible with Solr 1.x to Solr 7.x.</Description>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/SolrNet/SolrNet/master/license.txt</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/SolrNet/SolrNet</PackageProjectUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LightInject" Version="6.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SolrNet\SolrNet.csproj" />
+  </ItemGroup>
+
+</Project>
