@@ -51,7 +51,7 @@ create_solr_auth() {
   local next="$1"
 
   echo -e "\n\rWaiting for Solr (auth) to start..."
-  until docker container inspect solr_cloud 1>/dev/null 2>/dev/null; do
+  until docker container inspect solr_cloud_auth 1>/dev/null 2>/dev/null; do
     sleep 0.5
   done
   until curl -s http://localhost:8984 1>/dev/null 2>/dev/null; do
@@ -100,7 +100,8 @@ echo '{
 }}' > security.json
 
 docker run --rm -p 8984:8984 --name solr_cloud_auth solr:$SOLR_VERSION solr start -cloud -f >solr_output_auth.txt
-$authcontainerId = docker inspect -f '{{.Id}}' solr_cloud_auth
+authcontainerId=(docker inspect -f '{{.Id}}' solr_cloud_auth)
 docker cp security.json $authcontainerId:/security.json
+
 cat $output
 wait $tests
