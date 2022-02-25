@@ -14,7 +14,8 @@ namespace LightInject.SolrNet.Tests
     {
         private readonly ITestOutputHelper testOutputHelper;
         private readonly IServiceContainer defaultServiceProvider;
-        private readonly IServiceContainer defaultServiceProviderAuth;
+        private readonly IServiceContainer defaultServiceProviderAuth_WithAuth;
+        private readonly IServiceContainer defaultServiceProviderAuth_WithoutAuth;
 
         public LightInjectIntegrationFixture(ITestOutputHelper testOutputHelper)
         {
@@ -23,10 +24,14 @@ namespace LightInject.SolrNet.Tests
             this.defaultServiceProvider = new ServiceContainer();
             this.defaultServiceProvider.AddSolrNet("http://localhost:8983/solr/techproducts");
 
-            this.defaultServiceProviderAuth = new ServiceContainer();
-            this.defaultServiceProviderAuth.AddSolrNet("http://localhost:8984/solr/techproducts",
+            this.defaultServiceProviderAuth_WithAuth = new ServiceContainer();
+            this.defaultServiceProviderAuth_WithAuth.AddSolrNet("http://localhost:8984/solr/techproducts",
                 null,
                 () => new BasicAuthHttpWebRequestFactory("solr", "SolrRocks"));
+
+
+            this.defaultServiceProviderAuth_WithoutAuth = new ServiceContainer();
+            this.defaultServiceProviderAuth_WithoutAuth.AddSolrNet("http://localhost:8984/solr/techproducts");
         }
 
 
@@ -49,10 +54,17 @@ namespace LightInject.SolrNet.Tests
         [Fact]
         public void Test_Auth_Solr_Setup()
         {
-            var solr = defaultServiceProviderAuth.GetInstance<ISolrOperations<LightInjectFixture.Entity>>();
+            var solr = defaultServiceProviderAuth_WithAuth.GetInstance<ISolrOperations<LightInjectFixture.Entity>>();
             solr.Ping();
             testOutputHelper.WriteLine(solr.Query(SolrQuery.All).Count.ToString());
         }
 
+        [Fact]
+        public void Test_Auth_Solr_Setup_Fails()
+        {
+            var solr = defaultServiceProviderAuth_WithoutAuth.GetInstance<ISolrOperations<LightInjectFixture.Entity>>();
+            solr.Ping();
+            testOutputHelper.WriteLine(solr.Query(SolrQuery.All).Count.ToString());
+        }
     }
 }
