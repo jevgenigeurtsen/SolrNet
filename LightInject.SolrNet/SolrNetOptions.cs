@@ -6,18 +6,13 @@ namespace LightInject.SolrNet
 {
     public class SolrNetOptions
     {
-        public SolrNetOptions() : this(new HttpClient(), new HttpWebRequestFactory())
+        public SolrNetOptions() : this(new HttpClient())
         {
         }
 
-        public SolrNetOptions(HttpClient httpClient) : this(httpClient, new HttpWebRequestFactory())
-        {
-        }
-
-        public SolrNetOptions(HttpClient httpClient, IHttpWebRequestFactory httpWebRequestFactory)
+        public SolrNetOptions(HttpClient httpClient)
         {
             this.HttpClient = httpClient;
-            this.HttpWebRequestFactory = httpWebRequestFactory;
         }
 
         /// <summary>
@@ -25,6 +20,5 @@ namespace LightInject.SolrNet
         /// </summary>
         public HttpClient HttpClient { get; }
            
-        public IHttpWebRequestFactory HttpWebRequestFactory { get; }
     }
 }

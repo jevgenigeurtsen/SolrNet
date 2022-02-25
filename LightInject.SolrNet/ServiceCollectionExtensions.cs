@@ -14,6 +14,8 @@ using SolrNet.Mapping.Validation.Rules;
 using LightInject.SolrNet;
 using LightInject;
 using SolrNet.Schema;
+using System.Net;
+using HttpWebAdapters;
 
 namespace SolrNet
 {
@@ -24,14 +26,16 @@ namespace SolrNet
         /// </summary>
         /// <param name="services">The dependency injection service.</param>
         /// <param name="url">The url for the solr core.</param>
-        /// <param name="setupFunc">Allow to inject parameters in <see cref="AutoSolrConnection"/>.</param>
+        /// <param name="setupAction">Allow for custom headers to be injected.</param>
+        /// <param name="httpWebRequestFactoryFunc">Allow for injection of IHttpWebRequestFactory.</param>
         /// <returns>The dependency injection service.</returns>
         public static IServiceContainer AddSolrNet(this IServiceContainer services, string url,
-            Func<SolrNetOptions> setupFunc = null)
+            Action<SolrNetOptions> setupAction = null, 
+            Func<IHttpWebRequestFactory> httpWebRequestFactoryFunc = null)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new ArgumentNullException(nameof(url));
 
-            return AddSolrNet(services, sp => url, setupFunc);
+            return AddSolrNet(services, sp => url, setupAction, httpWebRequestFactoryFunc);
         }
         
         /// <summary>
@@ -39,17 +43,19 @@ namespace SolrNet
         /// </summary>
         /// <param name="services">The dependency injection service.</param>
         /// <param name="urlRetriever">The function to retrieve a url for the solr core.</param>
-        /// <param name="setupFunc">Allow to inject parameters in <see cref="AutoSolrConnection"/>.</param>
+        /// <param name="setupAction">Allow for custom headers to be injected.</param>
+        /// <param name="httpWebRequestFactoryFunc">Allow for injection of IHttpWebRequestFactory.</param>
         /// <returns>The dependency injection service.</returns>
         public static IServiceContainer AddSolrNet(this IServiceContainer services,
             Func<IServiceContainer, string> urlRetriever,
-            Func<SolrNetOptions> setupFunc = null)
+            Action<SolrNetOptions> setupAction = null, 
+            Func<IHttpWebRequestFactory> httpWebRequestFactoryFunc = null)
         {
             if (services == null) throw new ArgumentNullException(nameof(services));
             if (urlRetriever == null) throw new ArgumentNullException(nameof(urlRetriever));
             if (AddedGeneralDi(services)) throw new InvalidOperationException("Only one non-typed Solr Core can be added, which needs to be called before AddSolrNet<>().");
 
-            return BuildSolrNet(services, urlRetriever, setupFunc);
+            return BuildSolrNet(services, urlRetriever, setupAction, httpWebRequestFactoryFunc);
         }
         
         /// <summary>
@@ -57,15 +63,16 @@ namespace SolrNet
         /// </summary>
         /// <param name="services">The dependency injection service.</param>
         /// <param name="url">The url for the second core.</param>
-        /// <param name="setupFunc">Allow to inject parameters in <see cref="AutoSolrConnection"/>.</param>
+        /// <param name="setupAction">Allow for custom headers to be injected.</param>
+        /// <param name="httpWebRequestFactoryFunc">Allow for injection of IHttpWebRequestFactory.</param>
         /// <typeparam name="TModel">The type of model that should be used for this core.</typeparam>
         /// <returns>The dependency injection service.</returns>
         public static IServiceContainer AddSolrNet<TModel>(this IServiceContainer services, string url,
-            Func<SolrNetOptions> setupFunc = null)
+            Action<SolrNetOptions> setupAction = null, Func<IHttpWebRequestFactory> httpWebRequestFactoryFunc = null)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new ArgumentNullException(nameof(url));
 
-            return AddSolrNet<TModel>(services, sp => url, setupFunc);
+            return AddSolrNet<TModel>(services, sp => url, setupAction, httpWebRequestFactoryFunc);
         }
 
         /// <summary>
@@ -73,22 +80,23 @@ namespace SolrNet
         /// </summary>
         /// <param name="services">The dependency injection service.</param>
         /// <param name="urlRetriever">The function to retrieve a url for the second core.</param>
-        /// <param name="setupFunc">Allow to inject parameters in <see cref="AutoSolrConnection"/>.</param>
+        /// <param name="setupAction">Allow for custom headers to be injected.</param>
+        /// <param name="httpWebRequestFactoryFunc">Allow for injection of IHttpWebRequestFactory.</param>
         /// <typeparam name="TModel">The type of model that should be used for this core.</typeparam>
         /// <returns>The dependency injection service.</returns>
         public static IServiceContainer AddSolrNet<TModel>(this IServiceContainer services,
             Func<IServiceContainer, string> urlRetriever,
-            Func<SolrNetOptions> setupFunc = null)
+            Action<SolrNetOptions> setupAction = null, Func<IHttpWebRequestFactory> httpWebRequestFactoryFunc = null)
         {
             if (services == null) throw new ArgumentNullException(nameof(services));
             if (urlRetriever == null) throw new ArgumentNullException(nameof(urlRetriever));
             if (AddedDi<TModel>(services)) throw new InvalidOperationException($"SolrNet was already added for model of type {typeof(TModel).Name}");
 
-            services = BuildSolrNet(services, urlRetriever, setupFunc);
+            services = BuildSolrNet(services, urlRetriever, setupAction, httpWebRequestFactoryFunc);
 
             services.Register<ISolrInjectedConnection<TModel>>(factory => 
             {
-                var autoSolrConnection = CreateAutoSolrConnection(services, urlRetriever, setupFunc);
+                var autoSolrConnection = CreateAutoSolrConnection(services, urlRetriever, setupAction, httpWebRequestFactoryFunc);
                 return new BasicInjectionConnection<TModel>(autoSolrConnection);
             }, new PerRequestLifeTime());
 
@@ -100,10 +108,10 @@ namespace SolrNet
         /// </summary>
         /// <param name="services">The dependency injection service.</param>
         /// <param name="urlRetriever">The function that retrieves url to be built from.</param>
-        /// <param name="setupFunc">The setup func that should be used for injection purposes.</param>
+        /// <param name="setupAction">Allow for custom headers to be injected.</param>
         /// <returns></returns>
         private static IServiceContainer BuildSolrNet(IServiceContainer services,
-            Func<IServiceContainer, string> urlRetriever, Func<SolrNetOptions> setupFunc)
+            Func<IServiceContainer, string> urlRetriever, Action<SolrNetOptions> setupAction, Func<IHttpWebRequestFactory> httpWebRequestFactoryFunc)
         {
             if (AddedGeneralDi(services)) return services;
   
@@ -140,7 +148,7 @@ namespace SolrNet
             services.Register<IMappingValidator, MappingValidator>();
 
             // Bind single type to a single url, prevent breaking existing functionality
-            services.Register<ISolrConnection>(s => CreateAutoSolrConnection(services, urlRetriever, setupFunc));
+            services.Register<ISolrConnection>(s => CreateAutoSolrConnection(services, urlRetriever, setupAction, httpWebRequestFactoryFunc));
 
             services.Register(typeof(ISolrInjectedConnection<>), typeof(BasicInjectionConnection<>));
             services.Register(typeof(ISolrQueryExecuter<>), typeof(SolrInjectionQueryExecuter<>)); 
@@ -163,21 +171,21 @@ namespace SolrNet
         }
 
         private static ISolrConnection CreateAutoSolrConnection(IServiceContainer serviceProvider,
-            Func<IServiceContainer, string> urlRetriever, Func<SolrNetOptions> setupFunc)
+            Func<IServiceContainer, string> urlRetriever, Action<SolrNetOptions> setupAction, Func<IHttpWebRequestFactory> httpWebRequestFactoryFunc)
         {
             var solrUrl = urlRetriever(serviceProvider);
             if (string.IsNullOrWhiteSpace(solrUrl)) throw new ArgumentNullException(nameof(solrUrl));
 
-            if (setupFunc == null)
-            {
-                return new AutoSolrConnection(solrUrl);
-            }
-            else
-            {
-                var options = setupFunc();
+            var httpWebRequestFactory = httpWebRequestFactoryFunc != null ? httpWebRequestFactoryFunc() :new HttpWebRequestFactory();
 
-                return new AutoSolrConnection(solrUrl, options.HttpClient, options.HttpWebRequestFactory);
-            }
+            // Use constructor that enables both async and sync web requests, default ICredentials, they can be injected by callee via SolrNetOptions.
+            var connection = new AutoSolrConnection(solrUrl, default(ICredentials), httpWebRequestFactory);
+            if (setupAction == null) return connection;
+
+            // Allow for custom headers to be injected.
+            var options = new SolrNetOptions(connection.HttpClient);
+            setupAction(options);
+            return connection;
         }
     }
 }

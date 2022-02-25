@@ -188,18 +188,8 @@ namespace LightInject.SolrNet.Tests
             //in base64
             var credentialsBase64 = Convert.ToBase64String(credentials);
 
-            // custom httpclient
-            var httpClientHandler = new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip,
-            };
-
-            var httpClient = new HttpClient(httpClientHandler);
-            
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentialsBase64);
-            
             //use the options to set the Authorization header.
-            sc.AddSolrNet("http://localhost:8983/solr/techproducts", () => new SolrNetOptions(httpClient));
+            sc.AddSolrNet("http://localhost:8983/solr/techproducts", options => { options.HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentialsBase64); });
 
             //test
             var connection = sc.GetInstance<ISolrConnection>() as AutoSolrConnection;
@@ -218,18 +208,8 @@ namespace LightInject.SolrNet.Tests
             //in base64
             var credentialsBase64 = Convert.ToBase64String(credentials);
             
-            // custom httpclient
-            var httpClientHandler = new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip,
-            };
-
-            var httpClient = new HttpClient(httpClientHandler);
-            
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentialsBase64);
-
             //use the options to set the Authorization header.
-            sc.AddSolrNet<string>("http://localhost:8983/solr/techproducts", () => new SolrNetOptions(httpClient));
+            sc.AddSolrNet<string>("http://localhost:8983/solr/techproducts", options => { options.HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentialsBase64); });
 
             //test
             var injectionConnection = sc.GetInstance<ISolrInjectedConnection<string>>() as BasicInjectionConnection<string>;
