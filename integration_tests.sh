@@ -103,20 +103,18 @@ output=$(mktemp)
 trap "rm $output" EXIT
 
 # start docker run jobs in background
-docker run --rm -p 8983:8983 --name solr_cloud solr:$SOLR_VERSION solr start -cloud -f >solr_output.txt &
-docker run --rm -p 8984:8983 --name solr_cloud_auth solr:$SOLR_VERSION solr start -cloud -f >solr_output_auth.txt &
+docker run --rm -p 8983:8983 --name solr_cloud solr:$SOLR_VERSION solr start -cloud -f >solr_output.txt || true &
+docker run --rm -p 8984:8983 --name solr_cloud_auth solr:$SOLR_VERSION solr start -cloud -f >solr_output_auth.txt || true &
 
 for i in create_solr create_solr_auth; do
 	"$i" & pids+=($!)
 done
 wait "${pids[@]}"
 
-run_tests stop $output
-stopAndTestPids += $1
+ run_tests stop $output
+stopAndTestPids = $1
 stopAndTestPids += $2
 
 cat $output
 wait -n $stopAndTestPids
-
-#sleep infinity
 
