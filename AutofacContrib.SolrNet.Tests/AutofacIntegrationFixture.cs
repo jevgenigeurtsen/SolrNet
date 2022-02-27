@@ -56,7 +56,6 @@ namespace AutofacContrib.SolrNet.Tests {
                 {"id", "ababa"},
                 {"manu", "who knows"},
                 {"popularity", 55},
-                {"timestamp", DateTime.UtcNow},
             });
         }
     }
