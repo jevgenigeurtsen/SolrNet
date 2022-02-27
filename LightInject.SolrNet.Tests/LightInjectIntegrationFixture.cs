@@ -68,7 +68,7 @@ namespace LightInject.SolrNet.Tests
                 solr.Ping();
             });
             //solr.Ping();
-            Assert.Contains("unauthorized", ex.Message.ToLower());
+            Assert.Contains("401", ex.Message.ToLower());
         }
     }
 }
