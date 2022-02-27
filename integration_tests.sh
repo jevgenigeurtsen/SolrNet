@@ -112,15 +112,9 @@ for i in create_solr create_solr_auth; do
 done
 wait "${pids[@]}"
 
-$(run_tests stop $output)
+run_tests stop $output
 testRunner=$?
 
 cat $output
-#wait $testres
-
-echo -e "ret;" $? + " testret; " + $testRunner
 
 exit $testRunner
-
-#sleep infinity
-
