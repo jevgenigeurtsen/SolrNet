@@ -77,7 +77,7 @@ echo '{
 		
   # apply security.json to solr server
   authcontainerId=$(docker inspect -f '{{.Id}}' solr_cloud_auth)
-  docker cp security.json $authcontainerId:/var/solr/data/security.json
+  docker cp security.json $authcontainerId:/security.json
 
   echo -e "\n\rSetting up Solr_BasicAuth collection and documents..."
   docker exec solr_cloud_auth solr create_collection -c techproducts -d sample_techproducts_configs 1>/dev/null 2>/dev/null
@@ -93,7 +93,7 @@ echo '{
   
   # enable basic auth after setup of collections has completed
   echo -e "\n\rSettings up Zookeeper in Solr_BasicAuth..." 
-  docker exec solr_cloud_auth bin/solr zk cp file:/var/solr/data/security.json zk:/security.json -z localhost:9983
+  docker exec solr_cloud_auth bin/solr zk cp file:/security.json zk:/security.json -z localhost:9983
   
   echo -e "\n\rSolr_BasicAuth available at http://localhost:8984\n\r"
 
