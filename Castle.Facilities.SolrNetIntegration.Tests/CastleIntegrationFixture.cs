@@ -60,7 +60,6 @@ namespace Castle.Facilities.SolrNetIntegration.Tests {
                 {"id", "ababa"},
                 {"manu", "who knows"},
                 {"popularity", 55},
-                {"timestamp", DateTime.UtcNow},
             });
         }
     }
