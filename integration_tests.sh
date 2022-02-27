@@ -94,7 +94,7 @@ echo '{
   # enable basic auth after setup of collections has completed
   echo -e "\n\rSettings up Zookeeper in Solr_BasicAuth..." 
   if [ "${SOLR_VERSION}" = "5.5.5" ]; then
-	docker exec solr_cloud_auth server/scripts/cloud-scripts/zkcli.sh -zkhost localhost:9983 -cmd putfile /security.json security.json
+	docker exec solr_cloud_auth server/scripts/cloud-scripts/zkcli.sh -zkhost localhost:9983 -cmd putfile /security.json /security.json
   else
 	# docker 6+
 	docker exec solr_cloud_auth bin/solr zk cp file:/security.json zk:/security.json -z localhost:9983
@@ -116,6 +116,8 @@ for i in create_solr create_solr_auth; do
 	"$i" & pids+=($!)
 done
 wait "${pids[@]}"
+
+sleep infinity
 
 run_tests stop $output
 testRunner=$?
