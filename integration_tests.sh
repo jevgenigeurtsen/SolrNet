@@ -8,7 +8,7 @@ run_tests() {
 
   echo -e "\n\rRunning integration tests..."
   dotnet test 'LightInject.SolrNet.Tests' --filter 'Category=Integration&FullyQualifiedName!~Cloud' 1>$output 2>$output
-    #dotnet test --filter 'Category=Integration&FullyQualifiedName!~Cloud' 1>$output 2>$output
+   dotnet test --filter 'Category=Integration&FullyQualifiedName!~Cloud' 1>$output 2>$output
    ret=$?
 
   if [ -n "$stop" ]; then
