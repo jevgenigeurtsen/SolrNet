@@ -64,11 +64,11 @@ namespace LightInject.SolrNet.Tests
         public void Test_Auth_Solr_Setup_Fails()
         {
             var solr = defaultServiceProviderAuth_WithoutAuth.GetInstance<ISolrOperations<LightInjectFixture.Entity>>();
-         //   var ex = Assert.Throws<SolrConnectionException>(() => {
-           // solr.Ping();
-            //});
-            solr.Ping();
-            //Assert.Contains("unauthorized", ex.Message.ToLower());
+            var ex = Assert.Throws<SolrConnectionException>(() => {
+                solr.Ping();
+            });
+            //solr.Ping();
+            Assert.Contains("unauthorized", ex.Message.ToLower());
         }
     }
 }
