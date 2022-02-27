@@ -17,17 +17,17 @@ namespace Unity.SolrNetIntegration.Tests {
             new SolrServerElement {
                 Id = "entity",
                 DocumentType = typeof (Entity).AssemblyQualifiedName,
-                Url = "http://localhost:8983/solr/techproducts/core0",
+                Url = "http://localhost:8983/solr/techproducts",
             },
             new SolrServerElement {
                 Id = "entity2Dict",
                 DocumentType = typeof (Dictionary<string, object>).AssemblyQualifiedName,
-                Url = "http://localhost:8983/solr/techproducts/core1",
+                Url = "http://localhost:8983/solr/techproducts",
             },
             new SolrServerElement {
                 Id = "entity2",
                 DocumentType = typeof (Entity2).AssemblyQualifiedName,
-                Url = "http://localhost:8983/solr/techproducts/entity2",
+                Url = "http://localhost:8983/solr/techproducts",
             },
         };
 
@@ -39,8 +39,9 @@ namespace Unity.SolrNetIntegration.Tests {
         [Fact]
         public void Ping_And_Query()
         {
-            using (var container = UnityFixture.SetupContainer())
+            using (var container = new UnityContainer())
             {
+                new SolrNetContainerConfiguration().ConfigureContainer(TestServers, container);
                 var solr = container.Resolve<ISolrOperations<Entity>>();
                 solr.Ping();
                 testOutputHelper.WriteLine(solr.Query(SolrQuery.All).Count.ToString());
@@ -72,7 +73,6 @@ namespace Unity.SolrNetIntegration.Tests {
                     {"id", "5"},
                     {"manu", "who knows"},
                     {"popularity", 55},
-                    {"timestamp", DateTime.UtcNow},
                 });
             }
         }
