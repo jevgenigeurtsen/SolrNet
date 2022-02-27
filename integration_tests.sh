@@ -117,8 +117,6 @@ for i in create_solr create_solr_auth; do
 done
 wait "${pids[@]}"
 
-sleep infinity
-
 run_tests stop $output
 testRunner=$?
 
