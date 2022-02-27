@@ -5,6 +5,7 @@ using HttpWebAdapters;
 using Xunit;
 using SolrNet;
 using Xunit.Abstractions;
+using SolrNet.Exceptions;
 
 namespace LightInject.SolrNet.Tests
 {
@@ -63,8 +64,11 @@ namespace LightInject.SolrNet.Tests
         public void Test_Auth_Solr_Setup_Fails()
         {
             var solr = defaultServiceProviderAuth_WithoutAuth.GetInstance<ISolrOperations<LightInjectFixture.Entity>>();
+            var ex = Assert.Throws<SolrConnectionException>(() => {
             solr.Ping();
-            testOutputHelper.WriteLine(solr.Query(SolrQuery.All).Count.ToString());
+            });
+
+            Assert.Contains("unauthorized", ex.Message.ToLower());
         }
     }
 }

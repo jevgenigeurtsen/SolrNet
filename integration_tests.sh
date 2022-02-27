@@ -3,10 +3,19 @@
 export SOLR_VERSION=${SOLR_VERSION:-8.8.2}
 
 run_tests() {
-  local output="$1"
+  local stop="$1"
+  local output="$2"
 
   echo -e "\n\rRunning integration tests..."
-  dotnet test --filter 'Category=Integration&FullyQualifiedName!~Cloud' 1>$output 2>$output
+  dotnet test 'LightInject.SolrNet.Tests' --filter 'Category=Integration&FullyQualifiedName!~Cloud' 1>$output 2>$output
+   ret=$?
+
+  if [ -n "$stop" ]; then
+    echo -e "\n\rStopping Solr..."
+   docker stop solr_cloud
+   docker stop solr_cloud_auth
+  fi
+  return $ret
 }
 
 create_solr() {
@@ -102,12 +111,12 @@ for i in create_solr create_solr_auth; do
 done
 wait "${pids[@]}"
 
-run_tests $output
-cat $output
-wait
+run_tests stop $output
+stopAndTestPids += $1
+stopAndTestPids += $2
 
- docker stop solr_cloud
-	docker stop solr_cloud_auth
+cat $output
+wait -n $stopAndTestPids
 
 sleep infinity
 
