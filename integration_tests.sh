@@ -7,16 +7,32 @@ run_tests() {
   local output="$2"
 
   echo -e "\n\rRunning integration tests..."
-  dotnet test 'LightInject.SolrNet.Tests' --filter 'Category=Integration&FullyQualifiedName!~Cloud' 1>$output 2>$output
-   dotnet test --filter 'Category=Integration&FullyQualifiedName!~Cloud' 1>$output 2>$output
+  dotnet test --filter 'Category=Integration&FullyQualifiedName!~Cloud' 1>$output 2>$output
    ret=$?
 
   if [ -n "$stop" ]; then
     echo -e "\n\rStopping Solr..."
-   docker stop solr_cloud
-   docker stop solr_cloud_auth
+   #docker stop solr_cloud
+   #docker stop solr_cloud_auth
   fi
   return $ret
+}
+
+setupSolrCore() {
+	local coreName="$1"
+	local dockerContainerName="$2"
+	local solrPort="$3"
+	
+	docker exec $dockerContainerName solr create_collection -c $coreName -d sample_techproducts_configs 1>/dev/null 2>/dev/null
+	docker exec $dockerContainerName post -c $coreName 'example/exampledocs/' 1>/dev/null 2>/dev/null
+	
+	  curl -s -X POST -H 'Content-type:application/json' -d '{
+    "update-requesthandler": {
+      "name": "/select",
+      "class": "solr.SearchHandler",
+      "last-components": ["spellcheck"]
+    }
+  }' http://localhost:$solrPort/solr/$coreName/config >/dev/null
 }
 
 create_solr() {
@@ -29,16 +45,12 @@ create_solr() {
   done
 
   echo -e "\n\rSetting up Solr collection and documents..."
-  docker exec solr_cloud solr create_collection -c techproducts -d sample_techproducts_configs 1>/dev/null 2>/dev/null
-  docker exec solr_cloud post -c techproducts 'example/exampledocs/' 1>/dev/null 2>/dev/null
-
-  curl -s -X POST -H 'Content-type:application/json' -d '{
-    "update-requesthandler": {
-      "name": "/select",
-      "class": "solr.SearchHandler",
-      "last-components": ["spellcheck"]
-    }
-  }' http://localhost:8983/solr/techproducts/config >/dev/null
+  
+  setupSolrCore techproducts solr_cloud 8983
+  setupSolrCore core0 solr_cloud 8983
+  setupSolrCore core1 solr_cloud 8983
+  setupSolrCore entity1 solr_cloud 8983
+  setupSolrCore entity2 solr_cloud 8983
   
   echo -e "\n\rSolr available at http://localhost:8983\n\r"
 
@@ -59,37 +71,33 @@ create_solr_auth() {
   echo -e "\n\rPreparing Solr_BasicAuth auth..."
   
   # output default security.json to working directory
-echo '{
-    "authentication":{ 
-    "blockUnknown": true, 
-    "class":"solr.BasicAuthPlugin",
-    "credentials":{"solr":"IV0EHq1OnNrj6gvRCwvFwTrZ1+z1oBbnQdiVC3otuq0= Ndd7LKvVBAaZIF0QAVi1ekCfAJXr1GGfLtRUXhgrF8c="}, 
-    "realm":"My Solr users", 
-    "forwardCredentials": false 
-    },
-    "authorization":{
-    "class":"solr.RuleBasedAuthorizationPlugin",
-    "permissions":[{"name":"security-edit",
-        "role":"admin"}], 
-    "user-role":{"solr":"admin"} 
-    }
-}' > security.json
+	echo '{
+		"authentication":{ 
+		"blockUnknown": true, 
+		"class":"solr.BasicAuthPlugin",
+		"credentials":{"solr":"IV0EHq1OnNrj6gvRCwvFwTrZ1+z1oBbnQdiVC3otuq0= Ndd7LKvVBAaZIF0QAVi1ekCfAJXr1GGfLtRUXhgrF8c="}, 
+		"realm":"My Solr users", 
+		"forwardCredentials": false 
+		},
+		"authorization":{
+		"class":"solr.RuleBasedAuthorizationPlugin",
+		"permissions":[{"name":"security-edit",
+			"role":"admin"}], 
+		"user-role":{"solr":"admin"} 
+		}
+	}' > security.json
 		
   # apply security.json to solr server
   authcontainerId=$(docker inspect -f '{{.Id}}' solr_cloud_auth)
   docker cp security.json $authcontainerId:/security.json
 
   echo -e "\n\rSetting up Solr_BasicAuth collection and documents..."
-  docker exec solr_cloud_auth solr create_collection -c techproducts -d sample_techproducts_configs 1>/dev/null 2>/dev/null
-  docker exec solr_cloud_auth post -c techproducts 'example/exampledocs/' 1>/dev/null 2>/dev/null
- 
-  curl -s -X POST -H 'Content-type:application/json' -d '{
-    "update-requesthandler": {
-      "name": "/select",
-      "class": "solr.SearchHandler",
-      "last-components": ["spellcheck"]
-    }
-  }' http://localhost:8984/solr/techproducts/config >/dev/null
+  
+   setupSolrCore techproducts solr_cloud_auth 8984
+  setupSolrCore core0 solr_cloud_auth 8984
+  setupSolrCore core1 solr_cloud_auth 8984
+  setupSolrCore entity1 solr_cloud_auth 8984
+  setupSolrCore entity2 solr_cloud_auth 8984
   
   # enable basic auth after setup of collections has completed
   echo -e "\n\rSettings up Zookeeper in Solr_BasicAuth..." 
