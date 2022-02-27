@@ -118,5 +118,5 @@ stopAndTestPids += $2
 cat $output
 wait -n $stopAndTestPids
 
-sleep infinity
+#sleep infinity
 
