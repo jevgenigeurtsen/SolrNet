@@ -12,8 +12,8 @@ run_tests() {
 
   if [ -n "$stop" ]; then
     echo -e "\n\rStopping Solr..."
-   #docker stop solr_cloud
-   #docker stop solr_cloud_auth
+	docker stop solr_cloud
+	docker stop solr_cloud_auth
   fi
   return $ret
 }
@@ -70,7 +70,7 @@ create_solr_auth() {
   
   echo -e "\n\rPreparing Solr_BasicAuth auth..."
   
-  # output default security.json to working directory
+  # output default (official Solr documentation) security.json to working directory
 	echo '{
 		"authentication":{ 
 		"blockUnknown": true, 
@@ -93,7 +93,7 @@ create_solr_auth() {
 
   echo -e "\n\rSetting up Solr_BasicAuth collection and documents..."
   
-   setupSolrCore techproducts solr_cloud_auth 8984
+  setupSolrCore techproducts solr_cloud_auth 8984
   setupSolrCore core0 solr_cloud_auth 8984
   setupSolrCore core1 solr_cloud_auth 8984
   setupSolrCore entity1 solr_cloud_auth 8984
