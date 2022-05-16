@@ -8,7 +8,7 @@ run_tests() {
   local output="$2"
 
   echo -e "\n\rRunning integration tests..."
-  dotnet test --filter 'Category=Integration&FullyQualifiedName!~Cloud' 1>$output 2>$output
+  dotnet test --filter 'Category=Integration&FullyQualifiedName!~Cloud' --logger html 1>$output 2>$output
   ret=$?
 
   if [ -n "$stop" ]; then
