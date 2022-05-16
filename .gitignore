@@ -36,3 +36,4 @@ packages/*
 *.swp
 solr_output.txt
 solr_output_auth.txt
+*/TestResults/*
