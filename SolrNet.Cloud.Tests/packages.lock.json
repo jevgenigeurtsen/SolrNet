@@ -2051,7 +2051,7 @@
         "type": "Project",
         "dependencies": {
           "LightInject": "4.1.1",
-          "SolrNet.Core": "1.0.20"
+          "SolrNet.Core": "1.1.0"
         }
       },
       "solrnet.tests.common": {
@@ -2077,7 +2077,7 @@
           "SolrNet.Cloud.Core": "1.1.0",
           "SolrNet.Cloud.Unity": "1.1.0",
           "SolrNet.Core": "1.1.0",
-          "SolrNet.LightInject": "1.0.20",
+          "SolrNet.LightInject": "1.1.0",
           "SolrNet.Tests.Common": "1.1.0",
           "System.Configuration.ConfigurationManager": "5.0.0",
           "xunit": "2.4.1",
